@@ -254,7 +254,7 @@ define([
 							brNode = doc.createElement("br");
 
 							if(endNode.nodeValue == "" && has("webkit")){
-								endNode = doc.createTextNode('\xA0')
+								endNode = doc.createTextNode('\xA0');
 							}
 							domConstruct.place(startNode, rs, "after");
 							domConstruct.place(brNode, startNode, "after");

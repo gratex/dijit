@@ -149,7 +149,7 @@ define([
 			var ret = array.filter(xs, function(x){ return !x.__exclude__; });
 
 			// clean up after ourselves.
-			array.forEach(ys, function(y){ delete y['__exclude__'] });
+			array.forEach(ys, function(y){ delete y['__exclude__']; });
 			return ret;
 		},
 		_updateSelectionProperties: function(){

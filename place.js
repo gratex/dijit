@@ -333,7 +333,7 @@ define([
 							'M': y + (height >> 1)
 						}[aroundCorner.charAt(0)]
 					}
-				})
+				});
 			}
 			array.forEach(positions, function(pos){
 				var ltr =  leftToRight;

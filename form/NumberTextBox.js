@@ -193,7 +193,7 @@ define([
 			if(value !== undefined && formattedValue === undefined){
 				formattedValue = String(value);
 				if(typeof value == "number"){
-					if(isNaN(value)){ formattedValue = '' }
+					if(isNaN(value)){ formattedValue = ''; }
 					// check for exponential notation that number.format chokes on
 					else if(("rangeCheck" in this && this.rangeCheck(value, this.constraints)) || this.constraints.exponent === false || !/\de[-+]?\d/i.test(formattedValue)){
 						formattedValue = undefined; // lets format compute a real string value

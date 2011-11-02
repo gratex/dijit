@@ -55,7 +55,7 @@ define([
 		this.push = function(iframe){
 			iframe.style.display="none";
 			queue.push(iframe);
-		}
+		};
 	}();
 
 
