@@ -184,7 +184,7 @@ define([
 			this._clearActiveWidgetsTimer = setTimeout(lang.hitch(this, function(){
 				delete this._clearActiveWidgetsTimer;
 				this._setStack([]);
-			}), 0);
+			}), 100);
 		},
 
 		_onTouchNode: function(/*DomNode*/ node, /*String*/ by){
