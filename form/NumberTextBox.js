@@ -124,7 +124,8 @@ define([
 			if(!("rangeCheck" in this && this.rangeCheck(value, constraints)) && constraints.exponent !== false && /\de[-+]?\d/i.test(formattedValue)){
 				return formattedValue;
 			}
-			if(this.editOptions && this.focused){
+			//AR added disabled and readOnly to condition
+			if(this.editOptions && this.focused && !this.readOnly && !this.disabled){
 				constraints = lang.mixin({}, constraints, this.editOptions);
 			}
 			return this._formatter(value, constraints);
