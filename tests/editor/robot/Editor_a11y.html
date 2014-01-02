@@ -13,9 +13,9 @@
 		<script type="text/javascript">
 			require([
 				"doh/runner", "dojo/robotx",
-				"dojo/_base/array", "dojo/dom", "dojo/keys", "dojo/sniff", "dojo/window",
+				"dojo/_base/array", "dojo/dom", "dojo/keys", "dojo/_base/lang", "dojo/sniff", "dojo/window",
 				"dijit/tests/helpers", "dojo/domReady!"
-			], function(doh, robot, array, dom, keys, has, winUtils, helpers){
+			], function(doh, robot, array, dom, keys, lang, has, winUtils, helpers){
 
 				function normalize(str){
 					// try to do some normalization to make all browsers look
@@ -115,6 +115,7 @@
 								doh.is("no onchange event yet", editor1onChange, "onChange not called");
 							}), 500);
 							robot.keyPress(keys.TAB, 500);	// goes to content
+							robot.keyPress(keys.HOME, 500, {});	// go to start of content
 							robot.sequence(d.getTestCallback(function(){
 								// just to signal that we are done
 							}));
@@ -127,10 +128,6 @@
 						timeout: 10000,
 						runTest: function(){
 							var d = new doh.Deferred();
-
-							robot.sequence(d.getTestErrback(function(){
-								editor1.placeCursorAtStart();
-							}), 500);
 
 							robot.sequence(d.getTestCallback(function(){
 								var toolbar = editor1.toolbar;
@@ -369,6 +366,27 @@
 						}
 					}
 				]);
+
+				doh.register("clear then focus", {
+					name: "#10268",
+					timeout: 10000,
+					runTest: function(){
+						var d = new doh.Deferred();
+
+						dom.byId("focusBefore", robot.doc).focus();
+						winUtils.scrollIntoView(editor1.domNode);
+						editor1.set("value", "");
+						editor1.focus();
+
+						robot.typeKeys("hello ", 500, 750);
+
+						robot.sequence(d.getTestCallback(function(){
+							doh.is("hello", lang.trim(editor1.get("value")), "get('value')");
+						}), 500);
+
+						return d;
+					}
+				});
 
 				doh.run();
 			});

@@ -1,6 +1,7 @@
 define(["doh/main", "require", "dojo/sniff"], function(doh, require, has){
 
 	// inline doh tests
+	doh.register("editor.Editor", require.toUrl("./Editor.html"), 999999);
 	doh.register("editor.nls_8859-2", require.toUrl("./nls_8859-2.html"), 999999);
 	doh.register("editor.nls_sjis", require.toUrl("./nls_sjis.html"), 999999);
 	doh.register("editor.nls_utf8", require.toUrl("./nls_utf8.html"), 999999);
@@ -11,6 +12,7 @@ define(["doh/main", "require", "dojo/sniff"], function(doh, require, has){
 	doh.register("editor.robot.Editor_mouse", require.toUrl("./robot/Editor_mouse.html"), 999999);
 	doh.register("editor.robot.Editor_a11y", require.toUrl("./robot/Editor_a11y.html"), 999999);
 	doh.register("editor.robot.Misc", require.toUrl("./robot/Editor_misc.html"), 999999);
+	doh.register("editor.robot.Bidi", require.toUrl("./robot/Editor_bidi.html"), 999999);
 
 	// Plugins
 	doh.register("editor.robot.CustomPlugin", require.toUrl("./robot/CustomPlugin.html"), 999999);
