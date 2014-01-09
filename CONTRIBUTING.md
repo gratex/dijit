@@ -165,7 +165,7 @@ this can be found in the GitHub Help Article [Creating a Pull Request][].  Essen
 1. Go to the site for your repository.
 2. Click the Pull Request button.
 3. Select the feature branch from your repository.
-4. Enter a title and description of your pull request.
+4. Enter a title and description of your pull request mentioning the corresponding [bug database][] ticket in the description.
 5. Review the commit and files changed tabs.
 6. Click `Send Pull Request`
 
@@ -205,7 +205,7 @@ All of your submissions are licensed under a dual "New" BSD/AFL license.
 
 ## Expect Discussion and Rework
 
-Unless you have been working with contributing to Dojo for a while, expect a a significant amount of feedback on your
+Unless you have been working with contributing to Dojo for a while, expect a significant amount of feedback on your
 pull requests.  We are a very passionate community and even the committers often will provide robust feedback to each
 other about their code.  Don't be offended by such feedback or feel that your contributions aren't welcome, it is just
 that we are quite passionate and Dojo has a long history with many things that are the "Dojo-way" which may be
