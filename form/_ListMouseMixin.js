@@ -23,9 +23,6 @@ define([
 			// Add flag to use normalized click handling from dojo/touch
 			this.domNode.dojoClick = true;
 
-			this.own(on(this.domNode, "mousedown", function(evt){
-				evt.preventDefault();
-			})); // prevent focus shift on list scrollbar press
 			this._listConnect("click", "_onClick");
 			this._listConnect("mousedown", "_onMouseDown");
 			this._listConnect("mouseup", "_onMouseUp");
@@ -34,7 +31,7 @@ define([
 		},
 
 		_onClick: function(/*Event*/ evt, /*DomNode*/ target){
-			this._setSelectedAttr(target);
+			this._setSelectedAttr(target, false);
 			if(this._deferredClick){
 				this._deferredClick.remove();
 			}
@@ -50,7 +47,7 @@ define([
 				this._hoveredNode = null;
 			}
 			this._isDragging = true;
-			this._setSelectedAttr(target);
+			this._setSelectedAttr(target, false);
 		},
 
 		_onMouseUp: function(/*Event*/ evt, /*DomNode*/ target){
@@ -89,7 +86,7 @@ define([
 			this._hoveredNode = target;
 			this.onHover(target);
 			if(this._isDragging){
-				this._setSelectedAttr(target);
+				this._setSelectedAttr(target, false);
 			}
 		}
 	});

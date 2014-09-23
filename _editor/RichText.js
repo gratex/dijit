@@ -176,7 +176,10 @@ define([
 
 			// Push in the builtin filters now, making them the first executed, but not over-riding anything
 			// users passed in.  See: #6062
-			this.contentPreFilters = [lang.hitch(this, "_preFixUrlAttributes")].concat(this.contentPreFilters);
+			this.contentPreFilters = [
+				lang.trim,	// avoid IE10 problem hitting ENTER on last line when there's a trailing \n.
+				lang.hitch(this, "_preFixUrlAttributes")
+			].concat(this.contentPreFilters);
 			if(has("mozilla")){
 				this.contentPreFilters = [this._normalizeFontStyle].concat(this.contentPreFilters);
 				this.contentPostFilters = [this._removeMozBogus].concat(this.contentPostFilters);
@@ -353,16 +356,13 @@ define([
 
 			var dn = this.domNode;
 
-			// "html" will hold the innerHTML of the srcNodeRef and will be used to
-			// initialize the editor.
+			// Compute initial value of the editor
 			var html;
-
 			if(lang.isString(this.value)){
 				// Allow setting the editor content programmatically instead of
 				// relying on the initial content being contained within the target
 				// domNode.
 				html = this.value;
-				delete this.value;
 				dn.innerHTML = "";
 			}else if(dn.nodeName && dn.nodeName.toLowerCase() == "textarea"){
 				// if we were created from a textarea, then we need to create a
@@ -416,7 +416,6 @@ define([
 				html = htmlapi.getChildrenHtml(dn);
 				dn.innerHTML = "";
 			}
-
 			this.value = html;
 
 			// If we're a list item we have to put in a blank line to force the
@@ -447,7 +446,7 @@ define([
 					while((dat = datas[i++])){
 						var data = dat.split(this._NAME_CONTENT_SEP);
 						if(data[0] === this.name){
-							html = data[1];
+							this.value = data[1];
 							datas = datas.splice(i, 1);
 							saveTextarea.value = datas.join(this._SEPARATOR);
 							break;
@@ -494,6 +493,10 @@ define([
 			}
 			ifr.frameBorder = 0;
 			ifr._loadFunc = lang.hitch(this, function(w){
+				// This method is called when the editor is first loaded and also if the Editor's
+				// dom node is repositioned. Unfortunately repositioning the Editor tends to
+				// clear the iframe's contents, so we can't just no-op in that case.
+
 				this.window = w;
 				this.document = w.document;
 
@@ -504,8 +507,10 @@ define([
 					this._localizeEditorCommands();
 				}
 
-				// Do final setup and set initial contents of editor
-				this.onLoad(html);
+				// Do final setup and set contents of editor.
+				// Use get("value") rather than html in case _loadFunc() is being called for a second time
+				// because editor's DOMNode was repositioned.
+				this.onLoad(this.get("value"));
 			});
 
 			// Attach iframe to document, and set the initial (blank) content.
@@ -513,9 +518,12 @@ define([
 				s;
 
 			// IE10 and earlier will throw an "Access is denied" error when attempting to access the parent frame if
-			// document.domain has been set, unless the child frame also has the same document.domain set. The child frame
-			// can only set document.domain while the document is being constructed using open/write/close; attempting to
-			// set it later results in a different "This method can't be used in this context" error. See #17529
+			// document.domain has been set, unless the child frame also has the same document.domain set. In some
+			// cases, we can only set document.domain while the document is being constructed using open/write/close;
+			// attempting to set it later results in a different "This method can't be used in this context" error.
+			// However, in at least IE9-10, sometimes the parent.window check will succeed and the access failure will
+			// only happen later when trying to access frameElement, so there is an additional check and fix there
+			// as well. See #17529
 			if (has("ie") < 11) {
 				s = 'javascript:document.open();try{parent.window;}catch(e){document.domain="' + document.domain + '";}' +
 					'document.write(\'' + src + '\');document.close()';
@@ -559,7 +567,7 @@ define([
 			// The contents inside of <body>.  The real contents are set later via a call to setValue().
 			// In auto-expand mode, need a wrapper div for AlwaysShowToolbar plugin to correctly
 			// expand/contract the editor as the content changes.
-			var html = "<div id='dijitEditorBody' dir='" + (this.isTextDirLeftToRight()? "ltr" : "rtl") + "'></div>";
+			var html = "<div id='dijitEditorBody'></div>";
 
 			var font = [ _cs.fontWeight, _cs.fontSize, _cs.fontFamily ].join(" ");
 
@@ -660,7 +668,10 @@ define([
 
 				// Onload handler fills in real editor content.
 				// On IE9, sometimes onload is called twice, and the first time frameElement is null (test_FullScreen.html)
-				"onload='frameElement && frameElement._loadFunc(window,document)' ",
+				// On IE9-10, it is also possible that accessing window.parent in the initial creation of the
+				// iframe DOM will succeed, but trying to access window.frameElement will fail, in which case we
+				// *can* set the domain without a "This method can't be used in this context" error. See #17529
+				"onload='try{frameElement && frameElement._loadFunc(window,document)}catch(e){document.domain=\"" + document.domain + "\";frameElement._loadFunc(window,document)}' ",
 				"style='" + userStyle + "'>", html, "</body>\n</html>"
 			].join(""); // String
 		},
@@ -788,8 +799,6 @@ define([
 			// tags:
 			//		protected
 
-			// TODO: rename this to _onLoad, make empty public onLoad() method, deprecate/make protected onLoadDeferred handler?
-
 			if(!this.window.__registeredWindow){
 				this.window.__registeredWindow = true;
 				this._iframeRegHandle = focus.registerIframe(this.iframe);
@@ -812,10 +821,10 @@ define([
 
 			var events = this.events.concat(this.captureEvents);
 			var ap = this.iframe ? this.document : this.editNode;
-			this.own(
+			this.own.apply(this,
 				array.map(events, function(item){
 					var type = item.toLowerCase().replace(/^on/, "");
-					on(ap, type, lang.hitch(this, item));
+					return on(ap, type, lang.hitch(this, item));
 				}, this)
 			);
 
@@ -870,9 +879,13 @@ define([
 			// until plugins load (and do things like register filters).
 			var setContent = lang.hitch(this, function(){
 				this.setValue(html);
-				if(this.onLoadDeferred){
+
+				// Tell app that the Editor has finished loading.  isFulfilled() check avoids spurious
+				// console warning when this function is called repeatedly because Editor DOMNode was moved.
+				if(this.onLoadDeferred && !this.onLoadDeferred.isFulfilled()){
 					this.onLoadDeferred.resolve(true);
 				}
+
 				this.onDisplayChanged();
 				if(this.focusOnLoad){
 					// after the document loads, then set focus after updateInterval expires so that
@@ -895,6 +908,15 @@ define([
 			// tags:
 			//		protected
 
+			// Modifier keys should not cause the onKeyPressed event because they do not cause any change to the
+			// display
+			if(e.keyCode === keys.SHIFT ||
+			   e.keyCode === keys.ALT ||
+			   e.keyCode === keys.META ||
+			   e.keyCode === keys.CTRL){
+				return true;
+			}
+
 			if(e.keyCode === keys.TAB && this.isTabIndent){
 				//prevent tab from moving focus out of editor
 				e.stopPropagation();
@@ -909,15 +931,19 @@ define([
 			}
 
 			// Make tab and shift-tab skip over the <iframe>, going from the nested <div> to the toolbar
-			// or next element after the editor.   Needed on IE<9 and firefox.
-			if(e.keyCode == keys.TAB && !this.isTabIndent){
-				if(e.shiftKey && !e.ctrlKey && !e.altKey){
+			// or next element after the editor
+			if(e.keyCode == keys.TAB && !this.isTabIndent && !e.ctrlKey && !e.altKey){
+				if(e.shiftKey){
 					// focus the <iframe> so the browser will shift-tab away from it instead
 					this.beforeIframeNode.focus();
-				}else if(!e.shiftKey && !e.ctrlKey && !e.altKey){
+				}else{
 					// focus node after the <iframe> so the browser will tab away from it instead
 					this.afterIframeNode.focus();
 				}
+
+				// Prevent onKeyPressed from firing in order to avoid triggering a display change event when the
+				// editor is tabbed away; this fixes toolbar controls being inappropriately disabled in IE9+
+				return true;
 			}
 
 			if(has("ie") < 9 && e.keyCode === keys.BACKSPACE && this.document.selection.type === "Control"){
@@ -1049,9 +1075,9 @@ define([
 			// tags:
 			//		protected
 
-			// Workaround IE9+ problems when you blur the browser windows while an editor is focused: IE hangs
+			// Workaround IE problem when you blur the browser windows while an editor is focused: IE hangs
 			// when you focus editor #1, blur the browser window, and then click editor #0.  See #16939.
-			if(has("ie") >= 9){
+			if(has("ie") || has("trident")){
 				this.defer(function(){
 					if(!focus.curNode){
 						this.ownerDocumentBody.focus();
@@ -1521,7 +1547,7 @@ define([
 				}
 			}
 
-			return this._postFilterContent(null, nonDestructive);
+			return this.isLoaded ? this._postFilterContent(null, nonDestructive) : this.value;
 		},
 		_getValueAttr: function(){
 			// summary:
@@ -2801,7 +2827,7 @@ define([
 
 		_handleTextColorOrProperties: function(command, argument){
 			// summary:
-			//		This function handles appplying text color as best it is
+			//		This function handles applying text color as best it is
 			//		able to do so when the selection is collapsed, making the
 			//		behavior cross-browser consistent. It also handles the name
 			//		and size for IE.
@@ -2952,14 +2978,14 @@ define([
 
 		_stripTrailingEmptyNodes: function(/*DOMNode*/ node){
 			// summary:
-			//		Function for stripping trailing <p> nodes without any text, but not stripping trailing nodes
+			//		Function for stripping trailing nodes without any text, excluding trailing nodes
 			//		like <img> or <div><img></div>, even though they don't have text either.
 
 			function isEmpty(node){
 				// If not for old IE we could check for Element children by node.firstElementChild
 				return (/^(p|div|br)$/i.test(node.nodeName) && node.children.length == 0 &&
-					lang.trim(node.textContent || node.innerText || "") == "") ||
-					(node.nodeType === 3/*text*/ && lang.trim(node.nodeValue) == "");
+					/^[\s\xA0]*$/.test(node.textContent || node.innerText || "")) ||
+					(node.nodeType === 3/*text*/ && /^[\s\xA0]*$/.test(node.nodeValue));
 			}
 			while(node.lastChild && isEmpty(node.lastChild)){
 				domConstruct.destroy(node.lastChild);
@@ -2968,31 +2994,17 @@ define([
 			return node;
 		},
 
-		isTextDirLeftToRight: function(){
-			return this.isLeftToRight();
+		// Needed to support ToggleDir plugin.  Intentionally not inside if(has("dojo-bidi")) block
+		// so that (for backwards compatibility) ToggleDir plugin works even when has("dojo-bidi") is falsy.
+		_setTextDirAttr: function(/*String*/ value){
+			// summary:
+			//		Sets textDir attribute.  Sets direction of editNode accordingly.
+			this._set("textDir", value);
+			this.onLoadDeferred.then(lang.hitch(this, function(){
+				this.editNode.dir = value;
+			}));
 		}
 	});
 
-	if(has("dojo-bidi")){
-		RichText.extend({
-			_setTextDirAttr: function(/*String*/ value){
-				// summary:
-				//		Sets textDir attribute. Sets direction of editNode accordingly.
-				this._set("textDir", value);
-				if(this.editNode){
-					this.editNode.dir = this.isTextDirLeftToRight() ? "ltr" : "rtl";
-				}
-			},
-
-			isTextDirLeftToRight: function(){
-				// summary:
-				//		Returns default text direction.
-				//		Default text direction is defined by textDir attribute provided that it contains one of 
-				//		"ltr" or "rtl" values. In other cases default text direction is the same, as orientation
-				//		of the editor.
-				return this.textDir === "ltr" ? true : (this.textDir === "rtl" ? false : this.isLeftToRight());
-			}
-		});
-	}
 	return RichText;
 });

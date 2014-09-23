@@ -4,18 +4,7 @@
 	<head>
 		<title>Checkbox unit Test</title>
 
-		<style type="text/css">
-			@import "../../themes/claro/document.css";
-			@import "../css/dijitTests.css";
-
-			label { margin-right: 0.80em; }
-		</style>
-
-		<!-- required: the default dijit theme: -->
-		<link id="themeStyles" rel="stylesheet" href="../../../dijit/themes/claro/claro.css"/>
-
-		<!-- required: dojo.js -->
-		<script type="text/javascript" src="../../../dojo/dojo.js"></script>
+		<script type="text/javascript" src="../boilerplate.js"></script>
 
 		<script type="text/javascript">
 			function defaultSubmitHandler(values){
@@ -126,8 +115,19 @@
 					function getValues(){
 						doh.is( json.stringify(originalGet), json.stringify(registry.byId("myForm").get('value')) );
 					},
+					function resetWithoutStateChange(){
+						var dfd = new doh.Deferred();
+						var passed = true;
+						var handle = cb1.on("change", function () { passed = false; });
+						cb1.reset();
+						setTimeout(dfd.getTestCallback(function() {
+							handle.remove();
+							doh.t(passed, "Change event should not fire when checkbox state is not changed from its initial value");
+						}), 50);
+						return dfd;
+					},
 					{
-						timeout:3000,
+						timeout: 6000,
 						name: "setValues",
 						runTest: function(){
 							var d = new doh.Deferred();
@@ -146,7 +146,7 @@
 						}
 					},
 					{
-						timeout: 3000,
+						timeout: 6000,
 						name: "resetValues",
 						runTest: function(){
 							var d = new doh.Deferred();
@@ -226,7 +226,7 @@
 			});
 		</script>
 	</head>
-	<body class="claro" role="main">
+	<body role="main">
 
 		<h1 class="testTitle">Dijit CheckBox Test</h1>
 		<p>

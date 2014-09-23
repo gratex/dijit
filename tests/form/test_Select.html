@@ -4,12 +4,7 @@
 		<meta http-equiv="Content-type" content="text/html; charset=utf-8">
 		<title>dijit/form/Select test</title>
 
-		<!-- required: the default dijit theme: -->
-		<link id="themeStyles" rel="stylesheet" href="../../../dijit/themes/claro/claro.css"/>
-
 		<style>
-			@import url(../../themes/claro/document.css);
-			@import url(../css/dijitTests.css);
 			.ark { text-decoration: underline; }
 			form {
 				margin:  10px 0px;
@@ -48,13 +43,8 @@
 				color: black !important;
 			}
 		</style>
-	
-		<!-- required: dojo.js -->
-		<script type="text/javascript" src="../../../dojo/dojo.js"
-			data-dojo-config="isDebug: true"></script>
-	
-		<!-- only needed for alternate theme testing: -->
-		<script type="text/javascript" src="../_testCommon.js"></script>
+
+		<script type="text/javascript" src="../boilerplate.js"></script>
 
 		<script type="text/javascript">
 			require([
@@ -74,6 +64,11 @@
 				"dijit/Dialog",
 				"dijit/Tooltip",
 				"dijit/tests/helpers",
+
+				// Used by parser
+				"dijit/Toolbar",
+				"dijit/form/ToggleButton",
+
 				"dojo/domReady!"
 			], function(doh, array, lang, parser, ItemFileReadStore, ItemFileWriteStore, Memory, Observable,
 						focus, registry, Select, Button, Form, Dialog, Tooltip, helpers){
@@ -125,7 +120,7 @@
 					{value: "AK", label: "Alaska"},
 					{value: "AZ", label: "Arizona"},
 					{value: "AR", label: "Arkansas"},
-					{value: "CA", label: "California"},
+					{value: "CA", label: "Calif<a href='javascript:alert()'>ornia</a>"},
 					{value: "CO", label: "Colorado"},
 					{value: "CT", label: "Connecticut"}
 				];
@@ -188,25 +183,37 @@
 								s1.set("value", s1.getOptions(2)); // set s1 to a valid value via index search
 								t.is("WA", s1.value);
 
-								setTimeout(function(){ try{ // allow onChange to fire
+								setTimeout(function(){
+									try{ // allow onChange to fire
 
-									// set s1 to non-existing value, which (currently) makes the Select pick
-									// the first option in the drop down
-									s1.set("value", "UT");
-									t.is("TN", s1.value);
+										// set s1 to non-existing value, which (currently) makes the Select pick
+										// the first option in the drop down
+										s1.set("value", "UT");
+										t.is("TN", s1.value);
 
-									setTimeout(function(){ try{ // allow onChange to fire
-										t.is(2, numChanges);
-										
-										// prevent onChange from firing
-										s1.set("value", "FL", false);
-										
-										setTimeout(function(){ try{ // allow onChange to fire if it's wrong
-											t.is(2, numChanges);
-											d.callback(true);
-										}catch(e){ d.errback(e); }}, 0)
-									}catch(e){ d.errback(e); }}, 0);
-								}catch(e){ d.errback(e); }}, 0);
+										setTimeout(function(){
+											try{ // allow onChange to fire
+												t.is(2, numChanges);
+
+												// prevent onChange from firing
+												s1.set("value", "FL", false);
+
+												setTimeout(function(){
+													try{ // allow onChange to fire if it's wrong
+														t.is(2, numChanges);
+														d.callback(true);
+													}catch(e){
+														d.errback(e);
+													}
+												}, 0)
+											}catch(e){
+												d.errback(e);
+											}
+										}, 0);
+									}catch(e){
+										d.errback(e);
+									}
+								}, 0);
 								return d;
 							}
 						},
@@ -219,26 +226,38 @@
 								s5.set("value", s5.getOptions(2)); // set s5 to a valid value via index search
 								t.is(102, s5.value);
 
-								setTimeout(function(){ try{ // allow onChange to fire
+								setTimeout(function(){
+									try{ // allow onChange to fire
 
-									// set s5 to non-existing value, which (currently) makes the Select pick
-									// the first option in the drop down
-									s5.set("value", 200);
-									t.is(100, s5.value);
+										// set s5 to non-existing value, which (currently) makes the Select pick
+										// the first option in the drop down
+										s5.set("value", 200);
+										t.is(100, s5.value);
 
-									setTimeout(function(){ try{ // allow onChange to fire
-										t.is(2, numChanges);
-										
-										// prevent onChange from firing
-										s5.set("value", 103, false);
-										t.t(/.*No Move.*/.test(s5.containerNode.innerHTML), s5.containerNode.innerHTML);
-										
-										setTimeout(function(){ try{ // allow onChange to fire if it's wrong
-											t.is(2, numChanges);
-											d.callback(true);
-										}catch(e){ d.errback(e); }}, 0)
-									}catch(e){ d.errback(e); }}, 0);
-								}catch(e){ d.errback(e); }}, 0);
+										setTimeout(function(){
+											try{ // allow onChange to fire
+												t.is(2, numChanges);
+
+												// prevent onChange from firing
+												s5.set("value", 103, false);
+												t.t(/.*No Move.*/.test(s5.containerNode.innerHTML), s5.containerNode.innerHTML);
+
+												setTimeout(function(){
+													try{ // allow onChange to fire if it's wrong
+														t.is(2, numChanges);
+														d.callback(true);
+													}catch(e){
+														d.errback(e);
+													}
+												}, 0)
+											}catch(e){
+												d.errback(e);
+											}
+										}, 0);
+									}catch(e){
+										d.errback(e);
+									}
+								}, 0);
 								return d;
 							}
 						},
@@ -268,7 +287,7 @@
 							timeout: 5000,
 							runTest: function(t){
 								var oldCnt = registry.length;
-									
+
 								s1.destroy();
 
 								var newCnt = registry.length;
@@ -278,10 +297,10 @@
 						{
 							name: "aria attributes",
 							timeout: 2000,
-							runTest:function(){
+							runTest: function(){
 								var d = new doh.Deferred();
 								select = registry.byId("s2");
-																
+
 								doh.is("listbox", select._popupStateNode.getAttribute("role"), "select _popupStateNode role");
 								doh.t(select._popupStateNode.getAttribute("aria-haspopup"), "aria-haspopup on select");
 								doh.f(select._popupStateNode.getAttribute("aria-expanded"), "initially false aria-expanded");
@@ -299,7 +318,7 @@
 
 								return d;
 							},
-							tearDown:function(){
+							tearDown: function(){
 								select.closeDropDown();
 							}
 						}
@@ -362,7 +381,7 @@
 						// Test that new items added to the data store appear in the select's options
 						function test_newItem(t){
 							t.is(5, s11.getOptions().length);
-							t.is("AL", s11.value);	
+							t.is("AL", s11.value);
 
 							var d = new doh.Deferred();
 							writeStore.newItem({value: "NY", label: "New York"});
@@ -375,18 +394,17 @@
 							return d;
 						},
 
-						// Test that a Select's store can be changed
-						// TODO: should be supported/tested through set("store", ...), although
-						// I guess that wouldn't allow setting the selected item at the same time.
-						function test_setStore(t){
-							t.is("AL", s12.value);
-							s12.setStore(store2, "FL");
-							t.is("FL", s12.value);
-							s12.setStore(readStore, "CA");
-							t.is("CA", s12.value);
-							s12.setStore(store2);
-							t.is("DE", s12.value);
-							t.is(7, s12.getOptions().length);
+						// Test that a Select's store can be changed using deprecated API
+						// TODO remove in 2.0
+						function test_deprecatedSetStore(t){
+							t.is("AL", s12_dep.value);
+							s12_dep.setStore(store2, "FL");
+							t.is("FL", s12_dep.value);
+							s12_dep.setStore(readStore, "CA");
+							t.is("CA", s12_dep.value);
+							s12_dep.setStore(store2);
+							t.is("DE", s12_dep.value);
+							t.is(7, s12_dep.getOptions().length);
 						}
 					]);
 
@@ -432,38 +450,65 @@
 						// Test that new items added to the data store appear in the select's options
 						function test_newItem(t){
 							t.is(5, ds11.getOptions().length);
-							t.is("AL", ds11.value);	
+							t.is("AL", ds11.value);
 
 							memoryStore3.add({value: "NY", label: "New York"});
 
 							// TODO: try w/out the timeout
 							var d = new doh.Deferred();
 							setTimeout(d.getTestCallback(function(){
-									t.is(6, ds11.getOptions().length);
-									ds11.set("value", "NY");
-									t.is("NY", ds11.value);
+								t.is(6, ds11.getOptions().length);
+								ds11.set("value", "NY");
+								t.is("NY", ds11.value);
 							}), 100);
 							return d;
 						},
 
-						// Test that a Select's store can be changed
-						// TODO: should be supported/tested through set("store", ...), although
-						// I guess that wouldn't allow setting the selected item at the same time.
+						// Test that a Select's store can be changed using set API
 						function test_setStore(t){
 							t.is(7, ds12.getOptions().length);
 							t.is("AL", ds12.value);
-							ds12.setStore(memoryStore2, "FL");
+							ds12.set("store", memoryStore2);
+							ds12.set("value", "FL")
 							t.is(7, ds12.getOptions().length);
 							t.is("FL", ds12.value);
-							ds12.setStore(memoryStore, "CA");
+							ds12.set("store", memoryStore);
+							ds12.set("value", "CA")
 							t.is(7, ds12.getOptions().length);
+							// ensure that escaping prevented child nodes
+							t.is(ds12.containerNode.firstChild.childNodes.length, 1);
 							t.is("CA", ds12.value);
-							ds12.setStore(memoryStore2);
+							ds12.set("store", memoryStore2);
 							t.is(7, ds12.getOptions().length);
 							t.is("DE", ds12.value);
+						},
+
+						// Test that a Select's store can be changed using deprecated API
+						// TODO remove in 2.0
+						function test_deprecatedSetStore(t){
+							t.is(7, ds12_dep.getOptions().length);
+							t.is("AL", ds12_dep.value);
+							ds12_dep.setStore(memoryStore2, "FL");
+							t.is(7, ds12_dep.getOptions().length);
+							t.is("FL", ds12_dep.value);
+							ds12_dep.setStore(memoryStore, "CA");
+							t.is(7, ds12_dep.getOptions().length);
+							// ensure that escaping prevented child nodes
+							t.is(ds12_dep.containerNode.firstChild.childNodes.length, 1);
+							t.is("CA", ds12_dep.value);
+							ds12_dep.setStore(memoryStore2);
+							t.is(7, ds12_dep.getOptions().length);
+							t.is("DE", ds12_dep.value);
+						},
+
+						function test_setQuery(){
+							ds.set("value", "CT");
+							doh.is("Connecticut", ds.get("displayedValue"));
+							ds.set("query", {value: /^A.*/});
+							doh.is("Alabama", ds.get("displayedValue"));
 						}
 					]);
-					
+
 					doh.register("validation", [
 						function required(){
 							var s3 = registry.byId("s3");
@@ -484,93 +529,9 @@
 							doh.is("", stateWatch, "watch fired after set value=AK''");
 						}
 					]);
-					doh.register("validation in dialog1", [
-						function showDialog(){
-							// Show dialog, returning Deferred that fires when show dialog is finished.
-							// Before showing, focus the open button, so that Dialog knows where to return focus to.
-							registry.byId("dlg1OpenBtn").focus();
-							return registry.byId("dlg1").show();
-						},
-						function validateDialog(){
-							// Clicking validate button should show "required but empty" tooltip on the Select
-							var d = new doh.Deferred();
-							registry.byId("dlg1ValidateBtn").focus();
-							registry.byId("dlg1").validate();
-							setTimeout(d.getTestCallback(function(){
-								doh.is("dlg1Select", focus.curNode && focus.curNode.id, "focused on select");
-								masterTT = Tooltip._masterTT;
-								doh.t(masterTT && helpers.isVisible(masterTT.domNode), "tooltip shown");
-							}), 300);
-							return d;
-						},
-						function hideDialog(){
-							// Hiding the dialog should make the validation tooltip disappear
-							var d = new doh.Deferred();
-							registry.byId("dlg1").hide().then(function(){
-								setTimeout(d.getTestCallback(function(){
-									doh.t(helpers.isHidden(masterTT.domNode), "tooltip hidden");
-								}), 300);
-							});
-							return d;
-						},
-						function showDialogAgain(){
-							// Show dialog, returning Deferred that fires when show dialog is finished.
-							// Before showing, focus the open button, so that Dialog knows where to return focus to.
-							registry.byId("dlg1OpenBtn").focus();
-							return registry.byId("dlg1").show();
-						},
-						function tooltipAppears(){
-							// Opening the dialog focuses the select, which is invalid since it's got no value.
-							// Since this is the second time it's being focused, it should popup the tooltip
-							// immediately.
-							var d = new doh.Deferred();
-							registry.byId("dlg1ValidateBtn").focus();
-							registry.byId("dlg1").validate();
-							setTimeout(d.getTestCallback(function(){
-								doh.is("dlg1Select", focus.curNode && focus.curNode.id, "focused on select");
-								masterTT = Tooltip._masterTT;
-								doh.t(masterTT && helpers.isVisible(masterTT.domNode), "tooltip shown");
-							}), 300);
-							return d;
-						},
-						function tearDown(){
-							return registry.byId("dlg1").hide();
-						}
-					]);
-
-					doh.register("validation in dialog2", [
-						function showDialog(){
-							// Show dialog, returning Deferred that fires when show dialog is finished.
-							// Before showing, focus the open button, so that Dialog knows where to return focus to.
-							registry.byId("dlg2OpenBtn").focus();
-							return registry.byId("dlg2").show();
-						},
-						function validateDialog(){
-							// Clicking validate button should show "required but empty" tooltip on the Select
-							var d = new doh.Deferred();
-							registry.byId("dlg2ValidateBtn").focus();
-							registry.byId("dlg2").validate();
-							setTimeout(d.getTestCallback(function(){
-								doh.is("dlg2Select1", focus.curNode && focus.curNode.id, "focused on select");
-								masterTT = Tooltip._masterTT;
-								doh.t(masterTT && helpers.isVisible(masterTT.domNode), "tooltip shown");
-							}), 300);
-							return d;
-						},
-						function hideDialog(){
-							// Hiding the dialog should make the validation tooltip disappear
-							var d = new doh.Deferred();
-							registry.byId("dlg2").hide().then(function(){
-								setTimeout(d.getTestCallback(function(){
-									doh.t(helpers.isHidden(masterTT.domNode), "tooltip hidden");
-								}), 300);
-							});
-							return d;
-						}
-					]);
 				}
 
-				if(testPerformance){			
+				if(testPerformance){
 					doh.register("performance", [
 						{
 							name: "test_performance_single",
@@ -637,7 +598,7 @@
 			});
 		</script>
 	</head>
-	<body class="claro" role="main">
+	<body role="main">
 		<h1 class="testTitle">Test: dijit/form/Select</h1>
 
 		<p>
@@ -869,8 +830,8 @@
 			<label for="s11">Example 3</label>
 			<select id="s11" data-dojo-id="s11" data-dojo-type="dijit/form/Select" data-dojo-props='name:"s11", store:writeStore '>
 			</select>
-			<label for="s12">Example 4</label>
-			<select id="s12" data-dojo-id="s12" data-dojo-type="dijit/form/Select" data-dojo-props='name:"s12", store:readStore '>
+			<label for="s12_dep">Example 4 Legacy</label>
+			<select id="s12_dep" data-dojo-id="s12_dep" data-dojo-type="dijit/form/Select" data-dojo-props='name:"s12_dep", store:readStore '>
 			</select>
 
 			<hr>
@@ -885,7 +846,7 @@
 			</select>
 			<label for="ds11">Example 3 (Observable)</label>
 			<select id="ds11" data-dojo-id="ds11" data-dojo-type="dijit/form/Select"
-					data-dojo-props='name:"ds11", store:memoryStore3, labelAttr:"label" '>
+					data-dojo-props='name:"ds11", store:memoryStore3, labelType: "text", labelAttr:"label" '>
 			</select>
 			<label for="ds11a">Example 3a (Observable, same store as 3)</label>
 			<select id="ds11a" data-dojo-id="ds11a" data-dojo-type="dijit/form/Select"
@@ -893,7 +854,11 @@
 			</select>
 			<label for="ds12">Example 4</label>
 			<select id="ds12" data-dojo-id="ds12" data-dojo-type="dijit/form/Select"
-					data-dojo-props='name:"ds12", store:memoryStore, labelAttr:"label" '>
+					data-dojo-props='name:"ds12", labelType: "text", store:memoryStore, labelAttr:"label" '>
+			</select>
+			<label for="ds12_dep">Example 5 Legacy</label>
+			<select id="ds12_dep" data-dojo-id="ds12_dep" data-dojo-type="dijit/form/Select"
+					data-dojo-props='name:"ds12_dep", labelType: "text", store:memoryStore, labelAttr:"label" '>
 			</select>
 
 			<hr>
@@ -1222,5 +1187,27 @@
 				</fieldset>
 			</fieldset>
 		</fieldset>
+
+		<h4 class="testSubtitle">Toolbar</h4>
+		<input id="beforeToolbar">
+		<div data-dojo-type="dijit/Toolbar">
+			<button type="button" data-dojo-type="dijit/form/ToggleButton" id="toggle1">
+				toggle 1
+			</button>
+			<select id="toolbarSelect" data-dojo-id="s14" data-dojo-type="dijit/form/Select"
+					name="s14" style="width: 150px;" required="true">
+				<option>&nbsp;</option>
+				<option value="AL">Alabama</option>
+				<option value="AK">Alaska</option>
+				<option></option>
+				<option value="AZ">Arizona</option>
+				<option value="AR">Arkansas</option>
+				<option></option>
+				<option value="CA">California</option>
+			</select>
+			<button type="button" data-dojo-type="dijit/form/ToggleButton" id="toggle2">
+				toggle 2
+			</button>
+		</div>
 	</body>
 </html>
