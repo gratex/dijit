@@ -399,7 +399,9 @@ div.dijitArrowButton {
 	position: absolute;
 	top: 0;
 	left: 0;
-	#filter: ""; /* make this showup in IE6 after the rendering of the widget */
+	#filter: ""; /* make this show up in IE6 after the rendering of the widget */
+	white-space: nowrap;
+	pointer-events: none;   /* so cut/paste context menu shows up when right clicking */
 }
 
 .dijitTimeTextBox {
@@ -671,8 +673,8 @@ div.dijitArrowButton {
 }
 
 .dijitCheckBoxInput {
-	/* place the actual input on top, but all-but-invisible */
-	opacity: 0.01;
+	/* place the actual input on top, but invisible */
+	opacity: 0;
 }
 
 .dj_ie .dijitCheckBoxInput {
@@ -1285,7 +1287,6 @@ Hiding the focus border also works around webkit bug https://code.google.com/p/c
 }
 
 .dijitMenuItemLabel {
-	position: relative;
 	vertical-align: middle;
 }
 

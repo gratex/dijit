@@ -143,7 +143,7 @@
 
 <script type="text/javascript">
 	require([
-		"dojo/_base/array", "dojo/_base/fx", "dojo/dom", "dojo/dom-class", "dojo/dom-geometry", "dojo/dom-style",
+		"dojo/_base/array", "dojo/_base/fx", "dojo/_base/window", "dojo/dom", "dojo/dom-class", "dojo/dom-geometry", "dojo/dom-style",
 		"dojo/hccss", "dojo/date/locale", "dojo/parser", "dojo/store/Memory",
 		"dijit/registry", "dijit/tree/ObjectStoreModel",
 
@@ -158,17 +158,17 @@
 
 		// Modules referenced by the parser
 		"dijit/Menu", "dijit/PopupMenuItem", "dijit/ColorPalette", "dijit/layout/BorderContainer", "dijit/MenuBar",
-		"dijit/PopupMenuBarItem", "dijit/layout/AccordionContainer", "dijit/layout/ContentPane", "dijit/TooltipDialog",
+		"dijit/PopupMenuBarItem", "dijit/layout/AccordionContainer", "dijit/layout/ContentPane", "dijit/ConfirmTooltipDialog",
 		"dijit/Tree", "dijit/layout/TabContainer", "dijit/form/ComboButton", "dijit/form/ToggleButton",
 		"dijit/form/CheckBox", "dijit/form/RadioButton", "dijit/form/CurrencyTextBox", "dijit/form/NumberSpinner",
 		"dijit/form/Select", "dijit/Editor", "dijit/form/VerticalSlider", "dijit/form/VerticalRuleLabels",
 		"dijit/form/VerticalRule", "dijit/form/HorizontalSlider", "dijit/form/HorizontalRuleLabels",
 		"dijit/form/HorizontalRule", "dijit/TitlePane", "dijit/ProgressBar", "dijit/InlineEditBox", "dojo/dnd/Source",
-		"dijit/Dialog",
+		"dijit/ConfirmDialog",
 			
 		// Don't call the parser until the DOM has finished loading
 		"dojo/domReady!"
-	], function(array, baseFx, dom, domClass, domGeom, domStyle, has, locale, parser, Memory, registry, ObjectStoreModel,
+	], function(array, baseFx, win, dom, domClass, domGeom, domStyle, has, locale, parser, Memory, registry, ObjectStoreModel,
 			CheckedMenuItem, RadioMenuItem, MenuSeparator){
 		// If you are doing box-model sizing then need to tell dom-geometry, see #15104
 		if(domStyle.get(document.body, "boxSizing") == "border-box" ||
@@ -210,12 +210,12 @@
 
 			// Set class on body to get requested padding, and remove any previously set class
 			if(currentInputPadding){
-				domClass.remove(dojo.body(), currentInputPadding);
+				domClass.remove(win.body(), currentInputPadding);
 				currentInputPadding = "";
 			}
 			if(val != "theme default"){
 				currentInputPadding = "inputPadding" + val.replace("px", "");
-				domClass.add(dojo.body(), currentInputPadding);
+				domClass.add(win.body(), currentInputPadding);
 			}
 
 			// Clear previously checked MenuItem (radio-button effect).
@@ -346,20 +346,6 @@
 				// Function to reload page with specified theme, rtl, and a11y settings
 				location.search = "?theme=" + theme + (rtl ? "&dir=rtl" : "") + (a11y ? "&a11y=true" : "");
 			}
-
-			// Create menu choices and links to test other themes
-			var tmpString = '';
-			array.forEach(availableThemes, function(theme){
-				if(theme != curTheme){
-					tmpString +=
-							'<a href="?theme=' + theme.theme + '">' + theme.theme + '</' + 'a> (' +
-									'<a href="?theme=' + theme.theme + '&dir=rtl">RTL</' + 'a> ' +
-									'<a href="?theme=' + theme.theme + '&a11y=true">high-contrast</' + 'a> ' +
-									'<a href="?theme=' + theme.theme + '&dir=rtl&a11y=true">RTL+high-contrast</' + 'a> )' +
-									' - by: ' + theme.author + ' <br>';
-				}
-			});
-			dom.byId('themeData').innerHTML = tmpString;
 
 			// Create menu choices to test other themes
 			array.forEach(availableThemes, function(theme){
@@ -657,7 +643,7 @@
 			<div data-dojo-type="dijit/form/DropDownButton">
 				<span>Show Tooltip Dialog</span>
 
-				<div data-dojo-type="dijit/TooltipDialog" id="tooltipDlg" data-dojo-props='
+				<div data-dojo-type="dijit/ConfirmTooltipDialog" id="tooltipDlg" data-dojo-props='
 						title:"Enter Login information",
 						execute: function(){ alert("submitted w/args:\n" + dojo.toJson(arguments[0], true)); }
 					'>
@@ -669,10 +655,6 @@
 						<tr>
 							<td><label for="pwd">Password:</label></td>
 							<td><input data-dojo-type="dijit/form/TextBox" type="password" id="pwd" name="pwd"></td>
-						</tr>
-						<tr>
-							<td colspan="2">
-								<button data-dojo-type="dijit/form/Button" type="submit" name="submit">Login</button>
 						</tr>
 					</table>
 				</div>
@@ -925,10 +907,9 @@
 	 data-dojo-props="title:'Select Widgets', style:'padding:10px;display:none;'">
 
 	<h2>dijit/form/Select</h2>
-	<!-- fixme: <label for=""> but target a form element like input select etc -->
-	<label>Enabled:</label>
 
-	<div id="selectEnabled" data-dojo-type="dijit/form/Select" data-dojo-props="value:'AK'">
+	<span id="l_selectEnabled">Enabled:</span>
+	<div id="selectEnabled" data-dojo-type="dijit/form/Select" value="AK" aria-labelledby="l_selectEnabled">
 		<span data-dojo-value="AL"><b>Alabama</b></span>
 		<span data-dojo-value="AK"><span style="color:red">A</span><span style="color:orange">l</span><span
 				style="color:yellow">a</span><span style="color:green">s</span><span style="color:blue">k</span><span
@@ -943,9 +924,8 @@
 		<span data-dojo-value="NM">New<br>&nbsp;&nbsp;Mexico</span>
 	</div>
 
-	<label>Disabled: </label>
-
-	<div id="selectDisabled" data-dojo-props="value:'AK', disabled:true" data-dojo-type="dijit/form/Select">
+	<span id="l_selectDisabled">Disabled:</span>
+	<div id="selectDisabled" data-dojo-type="dijit/form/Select" value="AK" disabled aria-labelledby="l_selectDisabled">
 		<span data-dojo-value="AL"><b>Alabama</b></span>
 		<span data-dojo-value="AK"><span style="color:red">A</span><span style="color:orange">l</span><span
 				style="color:yellow">a</span><span style="color:green">s</span><span style="color:blue">k</span><span
@@ -1336,13 +1316,7 @@
 	</div>
 	<!-- end:info btab1 -->
 
-	<div id="btab2" data-dojo-type="dijit/layout/ContentPane"
-		 data-dojo-props='title:"Alternate Themes", style:"padding:20px;"'>
-		<span id="themeData"></span>
-	</div>
-	<!-- btab2 -->
-
-	<div id="btab3" data-dojo-type="dijit/layout/ContentPane" data-dojo-props='title:"Bottom 3", closable:true'>
+	<div id="btab2" data-dojo-type="dijit/layout/ContentPane" data-dojo-props='title:"Bottom 2", closable:true'>
 		<p>I am the last Tab</p>
 
 		<div id="dialog2" data-dojo-type="dijit/Dialog" data-dojo-props='title:"Encased Dialog", style:"display:none;"'>
@@ -1350,7 +1324,7 @@
 			parented by the Low Tab Pane #3
 		</div>
 	</div>
-	<!-- btab3 -->
+	<!-- btab2 -->
 
 </div>
 <!-- end Bottom TabContainer -->
@@ -1359,37 +1333,27 @@
 <!-- end of BorderContainer -->
 
 <!-- dialog in body -->
-<div id="dialog1" data-dojo-type="dijit/Dialog" style="display:none;" data-dojo-props="
+<div id="dialog1" data-dojo-type="dijit/ConfirmDialog" style="display:none;" data-dojo-props="
 		title:'Floating Modal Dialog from href',
 		href:'../tests/layout/getResponse.php?delay=3000&amp;messId=3',
 		style: 'width: 400px;',
 		refreshOnShow:true
 	"></div>
-<div id="dialogAB" data-dojo-type="dijit/Dialog" data-dojo-props="title:'Floating Modal Dialog'" style="display:none;">
-	<div class="dijitDialogPaneContentArea">
-		<table>
-			<tr>
-				<td><label for="name">Name: </label></td>
-				<td><input data-dojo-type="dijit/form/TextBox" type="text" name="name" id="name"></td>
-			</tr>
-			<tr>
-				<td><label for="loc">Location: </label></td>
-				<td><input data-dojo-type="dijit/form/TextBox" type="text" name="loc" id="loc"></td>
-			</tr>
-			<tr>
-				<td><label for="date">Date: </label></td>
-				<td><input data-dojo-type="dijit/form/DateTextBox" type="text" name="date" id="date"></td>
-			</tr>
-		</table>
-	</div>
-
-	<div class="dijitDialogPaneActionBar">
-		<button data-dojo-type="dijit/form/Button" type="submit" id="ABdialog1button1">OK</button>
-		<button data-dojo-type="dijit/form/Button" type="button"
-				data-dojo-props="onClick:function(){ registry.byId('dialogAB').onCancel(); }"
-				id="ABdialog1button2">Cancel
-		</button>
-	</div>
+<div id="dialogAB" data-dojo-type="dijit/ConfirmDialog" data-dojo-props="title:'Floating Modal Dialog'" style="display:none;">
+	<table>
+		<tr>
+			<td><label for="name">Name: </label></td>
+			<td><input data-dojo-type="dijit/form/TextBox" type="text" name="name" id="name"></td>
+		</tr>
+		<tr>
+			<td><label for="loc">Location: </label></td>
+			<td><input data-dojo-type="dijit/form/TextBox" type="text" name="loc" id="loc"></td>
+		</tr>
+		<tr>
+			<td><label for="date">Date: </label></td>
+			<td><input data-dojo-type="dijit/form/DateTextBox" type="text" name="date" id="date"></td>
+		</tr>
+	</table>
 </div>
 
 </body>

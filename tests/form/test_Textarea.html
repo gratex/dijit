@@ -6,21 +6,10 @@
 		<title>Dojo dijit.form.Textarea Widget Test</title>
 
 		<style type="text/css">
-			@import "../../themes/claro/document.css";
-			@import "../css/dijitTests.css";
-
 			br { margin-bottom: 4em; }
 		</style>
 
-		<!-- required: the default dijit theme: -->
-		<link id="themeStyles" rel="stylesheet" href="../../themes/claro/claro.css"/>
-
-		<!-- required: dojo.js -->
-		<script type="text/javascript" src="../../../dojo/dojo.js"
-			data-dojo-config="isDebug: true"></script>
-
-		<!-- only needed for alternate theme testing: -->
-		<script type="text/javascript" src="../_testCommon.js"></script>
+		<script type="text/javascript" src="../boilerplate.js"></script>
 
 		<script type="text/javascript">
 			require([
@@ -62,7 +51,11 @@
 		</script>
 
 	</head>
-	<body class="claro" role="main">
+	<body role="main">
+
+		<script type="dojo/require">
+			dom: "dojo/dom"
+		</script>
 
 		<h1 class="testTitle">Auto-sizing Textarea Widget Test</h1>
 
@@ -77,7 +70,7 @@
 
 			<label for="simple">dijit.form.Textarea, inline with maxLength=50:</label>
 			<textarea id="simple" data-dojo-type="dijit/form/Textarea" data-dojo-props='name:"simpleTextArea", maxLength:"50", style:{width:"33%"},
-	         		onChange:function(val){ dojo.byId("ocSimple").value = val; },
+	         		onChange:function(val){ dom.byId("ocSimple").value = val; },
 	         		onFocus:function(){ console.log("user focus handler"); },
 	         		onBlur:function(){ console.log("user blur handler"); }
 				'>this is a very simple resizable text area</textarea>

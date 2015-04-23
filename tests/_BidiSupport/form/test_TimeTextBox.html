@@ -4,20 +4,8 @@
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
 	<title>Bidi TimeTextBox</title>
 
-	<!-- required: the default dijit theme: -->
-	<link id="themeStyles" rel="stylesheet" href="../../../../dijit/themes/claro/claro.css"/>
-
-	<style>
-		@import url(../../../themes/claro/document.css);
-		@import url(../../css/dijitTests.css);
-	</style>
-
-	<!-- required: dojo.js -->
-	<script type="text/javascript" src="../../../../dojo/dojo.js"
-		data-dojo-config="isDebug: true, parseOnLoad: true, has: { 'dojo-bidi': true }"></script>
-
-	<!-- only needed for alternate theme testing: -->
-	<script type="text/javascript" src="../../_testCommon.js"></script>
+	<script type="text/javascript" src="../../boilerplate.js"
+			data-dojo-config="parseOnLoad: true, has: { 'dojo-bidi': true }"></script>
 
 	<script type="text/javascript">
 		require([
@@ -27,6 +15,7 @@
 			"dojo/parser",
 			"dijit/registry",
 			"dijit/form/TimeTextBox",
+			"dijit/form/Button",
 			"dojo/domReady!"
 		], function(doh, array, domClass, parser, registry, TimeTextBox){
 
@@ -35,13 +24,14 @@
 			});
 
 			function testWidget(element, guiDir, textDir, isfirstChildLatin){
-				doh.is(registry.byId(element).get("textDir"), textDir, "widget textDir");
-				doh.is(registry.byId(element).dir, guiDir, "GUI dir");
+				doh.is(textDir, registry.byId(element).get("textDir"), "widget textDir");
+				doh.is(guiDir, registry.byId(element).dir.toLowerCase(), "GUI dir");
+				doh.is(guiDir.toLowerCase() == "ltr", registry.byId(element).isLeftToRight(), "isLeftToRight()");
 				if(textDir == "auto"){
 					textDir = isfirstChildLatin? "ltr" : "rtl";
 				}
-				doh.is(registry.byId(element).focusNode.dir, textDir, "focusNode textDir");
-				doh[guiDir == "rtl" ? "t" : "f"](domClass.contains(registry.byId(element).domNode, "dijitTimeTextBoxRtl"), "dijitTimeTextBoxRtl");
+				doh.is(textDir, registry.byId(element).focusNode.dir, "focusNode textDir");
+				doh[guiDir.toLowerCase() == "rtl" ? "t" : "f"](domClass.contains(registry.byId(element).domNode, "dijitTimeTextBoxRtl"), "dijitTimeTextBoxRtl");
 			}
 
 			function testDropDownList(widgetId){
@@ -217,7 +207,7 @@
 	</script>
 
 </head>
-<body class="claro">
+<body>
 
 	<h1 class="testTitle">TimeTextBox</h1>
 	<br>
@@ -258,7 +248,7 @@
 					invalidMessage:"" '/>
 			</td>
 			<td>
-				<input dir="ltr" id="q4" data-dojo-type="dijit/form/TimeTextBox"
+				<input dir="LTR" id="q4" data-dojo-type="dijit/form/TimeTextBox"
 					data-dojo-props='type:"text", name:"time1a", value:"T12:30:00", textDir:"auto",
 					constraints:{formatLength:"short"},
 					lang:"ar",
@@ -269,7 +259,7 @@
 		<tr>
 			<td >  <font size=4 color=blue>RTL</font></td>
 			<td>
-				<input dir="rtl" id="q5" data-dojo-type="dijit/form/TimeTextBox"
+				<input dir="RTL" id="q5" data-dojo-type="dijit/form/TimeTextBox"
 					data-dojo-props='type:"text", name:"time1a", value:"T10:30:00", textDir:"ltr",
 					constraints:{formatLength:"short"},
 					required:true,

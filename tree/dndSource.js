@@ -5,12 +5,13 @@ define([
 	"dojo/dom-class", // domClass.add
 	"dojo/dom-geometry", // domGeometry.position
 	"dojo/_base/lang", // lang.mixin lang.hitch
+	"dojo/mouse",
 	"dojo/on", // subscribe
 	"dojo/touch",
 	"dojo/topic",
 	"dojo/dnd/Manager", // DNDManager.manager
 	"./_dndSelector"
-], function(array, declare, dndCommon, domClass, domGeometry, lang, on, touch, topic, DNDManager, _dndSelector){
+], function(array, declare, dndCommon, domClass, domGeometry, lang, mouse, on, touch, topic, DNDManager, _dndSelector){
 
 	// module:
 	//		dijit/tree/dndSource
@@ -181,25 +182,28 @@ define([
 					// Can't drop before or after tree's root node; the dropped node would just disappear (at least visually)
 					m.canDrop(false);
 				}else{
-					// Guard against dropping onto yourself (TODO: guard against dropping onto your descendant, #7140)
-					var sameId = false;
+					// Guard against dropping onto yourself or your parent.
+					// But when dragging multiple objects, it's OK if some of them are being dropped onto own parent.
+					var dropOntoSelf = false,
+						dropOntoParent = false;
 					if(m.source == this){
+						dropOntoParent = (newDropPosition === "Over");
 						for(var dragId in this.selection){
 							var dragNode = this.selection[dragId];
 							if(dragNode.item === newTarget.item){
-								sameId = true;
+								dropOntoSelf = true;
 								break;
+							}
+							if(dragNode.getParent().id !== newTarget.id){
+								dropOntoParent = false;
 							}
 						}
 					}
-					if(sameId){
-						m.canDrop(false);
-					}else if(this.checkItemAcceptance(newTarget.rowNode, m.source, newDropPosition.toLowerCase())
-						&& !this._isParentChildDrop(m.source, newTarget.rowNode)){
-						m.canDrop(true);
-					}else{
-						m.canDrop(false);
-					}
+					m.canDrop(
+						!dropOntoSelf && !dropOntoParent &&
+						!this._isParentChildDrop(m.source, newTarget.rowNode) &&
+						this.checkItemAcceptance(newTarget.rowNode, m.source, newDropPosition.toLowerCase())
+					);
 				}
 
 				this.targetAnchor = newTarget;
@@ -257,10 +261,14 @@ define([
 			//		onmousedown/ontouchend event
 			// tags:
 			//		private
-			this.mouseDown = true;
-			this.mouseButton = e.button;
-			this._lastX = e.pageX;
-			this._lastY = e.pageY;
+
+			if(e.type == "touchstart" || mouse.isLeft(e)){	// ignore right click
+				this.mouseDown = true;
+				this.mouseButton = e.button;
+				this._lastX = e.pageX;
+				this._lastY = e.pageY;
+			}
+
 			this.inherited(arguments);
 		},
 
@@ -392,7 +400,8 @@ define([
 			if(this.containerState == "Over"){
 				var tree = this.tree,
 					model = tree.model,
-					target = this.targetAnchor;
+					target = this.targetAnchor,
+					doExpand = false; // this is so we don't expand the sibling above
 
 				this.isDragging = false;
 
@@ -415,6 +424,7 @@ define([
 					}
 				}else{
 					newParentItem = (target && target.item) || tree.item;
+					doExpand = true;
 				}
 
 				// If necessary, use this variable to hold array of hashes to pass to model.newItem()
@@ -466,9 +476,9 @@ define([
 
 				// Expand the target node (if it's currently collapsed) so the user can see
 				// where their node was dropped.   In particular since that node is still selected.
-				//this.tree._expandNode(target);
-				if(this.dropPosition == "Over")
-			        this.tree._expandNode(target);
+				if(doExpand) {
+					this.tree._expandNode(target);
+				}
 			}
 			this.onDndCancel();
 		},

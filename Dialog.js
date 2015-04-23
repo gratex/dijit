@@ -29,6 +29,7 @@ define([
 	"./layout/ContentPane",
 	"./layout/utils",
 	"dojo/text!./templates/Dialog.html",
+	"./a11yclick",	// template uses ondijitclick
 	"dojo/i18n!./nls/common"
 ], function(require, array, aspect, declare, Deferred,
 			dom, domClass, domGeometry, domStyle, fx, i18n, keys, lang, on, ready, has, winUtils,
@@ -40,6 +41,8 @@ define([
 
 	var resolvedDeferred = new Deferred();
 	resolvedDeferred.resolve(true);
+
+	function nop(){}
 
 	var _DialogBase = declare("dijit._DialogBase" + (has("dojo-bidi") ? "_NoBidi" : ""), [_TemplatedMixin, _FormMixin, _DialogMixin, _CssStateMixin], {
 		templateString: template,
@@ -141,7 +144,7 @@ define([
 			this._position();
 
 			if(this.autofocus && DialogLevelManager.isTop(this)){
-				this._getFocusItems(this.domNode);
+				this._getFocusItems();
 				focus.focus(this._firstFocusItem);
 			}
 
@@ -149,7 +152,7 @@ define([
 		},
 
 		focus: function(){
-			this._getFocusItems(this.domNode);
+			this._getFocusItems();
 			focus.focus(this._firstFocusItem);
 		},
 
@@ -226,7 +229,7 @@ define([
 			//		private
 
 			if(evt.keyCode == keys.TAB){
-				this._getFocusItems(this.domNode);
+				this._getFocusItems();
 				var node = evt.target;
 				if(this._firstFocusItem == this._lastFocusItem){
 					// don't move focus anywhere, but don't allow browser to move focus off of dialog either
@@ -303,6 +306,7 @@ define([
 				fadeIn.stop();
 				delete this._fadeInDeferred;
 			}));
+			this._fadeInDeferred.then(undefined, nop);	// avoid spurious CancelError message to console
 
 			// If delay is 0, code below will delete this._fadeInDeferred instantly, so grab promise while we can.
 			var promise = this._fadeInDeferred.promise;
@@ -317,7 +321,7 @@ define([
 					if(this.autofocus && DialogLevelManager.isTop(this)){
 						// find focusable items each time dialog is shown since if dialog contains a widget the
 						// first focusable items can change
-						this._getFocusItems(this.domNode);
+						this._getFocusItems();
 						focus.focus(this._firstFocusItem);
 					}
 					this._fadeInDeferred.resolve(true);
@@ -350,6 +354,7 @@ define([
 				fadeOut.stop();
 				delete this._fadeOutDeferred;
 			}));
+			this._fadeOutDeferred.then(undefined, nop);	// avoid spurious CancelError message to console
 
 			// fire onHide when the promise resolves.
 			this._fadeOutDeferred.then(lang.hitch(this, 'onHide'));
@@ -407,12 +412,14 @@ define([
 								delete this._singleChildOriginalStyle;
 							}
 						}
-						array.forEach([this.domNode, this.containerNode, this.titleBar], function(node){
-							domStyle.set(node, {
-								position: "static",
-								width: "auto",
-								height: "auto"
-							});
+						array.forEach([this.domNode, this.containerNode, this.titleBar, this.actionBarNode], function(node){
+							if(node){	// because titleBar may not be defined
+								domStyle.set(node, {
+									position: "static",
+									width: "auto",
+									height: "auto"
+								});
+							}
 						});
 						this.domNode.style.position = "absolute";
 					}
@@ -441,10 +448,18 @@ define([
 					domGeometry.setMarginBox(this.domNode, dim);
 
 					// And then size this.containerNode
-					var contentDim = utils.marginBox2contentBox(this.domNode, dim),
-						centerSize = {domNode: this.containerNode, region: "center"};
-					utils.layoutChildren(this.domNode, contentDim,
-						[ {domNode: this.titleBar, region: "top"}, centerSize ]);
+					var layoutNodes = [];
+					if(this.titleBar){
+						layoutNodes.push({domNode: this.titleBar, region: "top"});
+					}
+					if(this.actionBarNode){
+						layoutNodes.push({domNode: this.actionBarNode, region: "bottom"});
+					}
+					var centerSize = {domNode: this.containerNode, region: "center"};
+					layoutNodes.push(centerSize);
+
+					var contentDim = utils.marginBox2contentBox(this.domNode, dim);
+					utils.layoutChildren(this.domNode, contentDim, layoutNodes);
 
 					// And then if this.containerNode has a single layout widget child, size it too.
 					// Otherwise, make this.containerNode show a scrollbar if it's overflowing.
@@ -605,7 +620,7 @@ define([
 					// since a dialog doesn't set it's focus until the fade-in is finished.
 					var focus = pd.focus;
 					if(pd.dialog && (!focus || !dom.isDescendant(focus, pd.dialog.domNode))){
-						pd.dialog._getFocusItems(pd.dialog.domNode);
+						pd.dialog._getFocusItems();
 						focus = pd.dialog._firstFocusItem;
 					}
 

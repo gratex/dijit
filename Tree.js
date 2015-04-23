@@ -81,6 +81,9 @@ define([
 			this.labelNode[this.labelType == "html" ? "innerHTML" : "innerText" in this.labelNode ?
 				"innerText" : "textContent"] = val;
 			this._set("label", val);
+			if(has("dojo-bidi")){
+				this.applyTextDir(this.labelNode);
+			}
 		},
 
 		// labelType: [const] String
@@ -216,13 +219,13 @@ define([
 			//		Set appropriate CSS classes for this.domNode
 			// tags:
 			//		private
-			var parent = this.getParent();
-			if(!parent || !parent.rowNode || parent.rowNode.style.display == "none"){
-				/* if we are hiding the root node then make every first level child look like a root node */
-				domClass.add(this.domNode, "dijitTreeIsRoot");
-			}else{
-				domClass.toggle(this.domNode, "dijitTreeIsLast", !this.getNextSibling());
-			}
+
+			// if we are hiding the root node then make every first level child look like a root node
+			var parent = this.getParent(),
+				markAsRoot = !parent || !parent.rowNode || parent.rowNode.style.display == "none";
+			domClass.toggle(this.domNode, "dijitTreeIsRoot", markAsRoot);
+
+			domClass.toggle(this.domNode, "dijitTreeIsLast", !markAsRoot && !this.getNextSibling());
 		},
 
 		_setExpando: function(/*Boolean*/ processing){
@@ -361,6 +364,8 @@ define([
 				defs = [];	// list of deferreds that need to fire before I am complete
 
 
+			var focusedChild = tree.focusedChild;
+
 			// Orphan all my existing children.
 			// If items contains some of the same items as before then we will reattach them.
 			// Don't call this.removeChild() because that will collapse the tree etc.
@@ -408,10 +413,19 @@ define([
 							tree._saveExpandedNodes();
 						}
 
+						// If we've orphaned the focused node then move focus to the root node
+						if(tree.lastFocusedChild && !dom.isDescendant(tree.lastFocusedChild, tree.domNode)){
+							delete tree.lastFocusedChild;
+						}
+						if(focusedChild && !dom.isDescendant(focusedChild, tree.domNode)){
+							tree.focus();	// could alternately focus this node (parent of the deleted node)
+						}
+
 						// And finally we can destroy the node
 						node.destroyRecursive();
 					}
 				});
+
 			});
 
 			this.state = "Loaded";
@@ -926,10 +940,11 @@ define([
 
 					// Load top level children, and if persist==true, all nodes that were previously opened
 					this._expandNode(rn).then(lang.hitch(this, function(){
-						// Then, select the nodes specified by params.paths[].
-
-						this.rootLoadingIndicator.style.display = "none";
-						this.expandChildrenDeferred.resolve(true);
+						// Then, select the nodes specified by params.paths[], assuming Tree hasn't been deleted.
+						if(!this._destroyed){
+							this.rootLoadingIndicator.style.display = "none";
+							this.expandChildrenDeferred.resolve(true);
+						}
 					}));
 				}),
 				lang.hitch(this, function(err){
@@ -1025,7 +1040,7 @@ define([
 				return all(array.map(paths, function(path){
 					// normalize path to use identity
 					path = array.map(path, function(item){
-						return lang.isString(item) ? item : tree.model.getIdentity(item);
+						return item && lang.isObject(item) ? tree.model.getIdentity(item) : item;
 					});
 
 					if(path.length){
@@ -1356,7 +1371,7 @@ define([
 			// Touching a node should focus it, even if you touch the expando node or the edges rather than the label.
 			// Especially important to avoid _KeyNavMixin._onContainerFocus() causing the previously focused TreeNode
 			// to get focus
-			nodeWidget.focus();
+			this.focusNode(nodeWidget);
 		},
 
 		__click: function(/*TreeNode*/ nodeWidget, /*Event*/ e, /*Boolean*/doOpen, /*String*/func){
@@ -1556,7 +1571,9 @@ define([
 			// tags:
 			//		protected
 
+			var scrollLeft = this.domNode.scrollLeft;
 			this.focusChild(node);
+			this.domNode.scrollLeft = scrollLeft;
 		},
 
 		_onNodeMouseEnter: function(/*dijit/_WidgetBase*/ /*===== node =====*/){
@@ -1627,6 +1644,15 @@ define([
 						// if node has not already been orphaned from a _onSetItem(parent, "children", ..) call...
 						parent.removeChild(node);
 					}
+
+					// If we've orphaned the focused node then move focus to the root node
+					if(this.lastFocusedChild && !dom.isDescendant(this.lastFocusedChild, this.domNode)){
+						delete this.lastFocusedChild;
+					}
+					if(this.focusedChild && !dom.isDescendant(this.focusedChild, this.domNode)){
+						this.focus();
+					}
+
 					node.destroyRecursive();
 				}, this);
 				delete this._itemNodesMap[identity];
