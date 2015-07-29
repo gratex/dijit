@@ -106,7 +106,7 @@ define([
 		Button = declare("dijit.form.Button", Button, {
 			onLabelSet: function(){
 				this.inherited(arguments);
-				if(this.titleNode.title){
+				if(this.titleNode && this.titleNode.title){
 					this.applyTextDir(this.titleNode, this.titleNode.title);
 				}
 			},
