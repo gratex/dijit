@@ -96,6 +96,13 @@ define([
 		//		popups they get a higher z-index.)
 		_beginZIndex: 1000,
 
+		// _maxHeightCrop: Number
+		//		AR: added attribute, denoting space in pixel that will be substracted 
+		//		from maxHeight computed from vieweport and position 
+		//		this will prevent the popup to be sticked to the bottom (nicer look)
+		//		and also problems with useless scrollbars appearing on page
+		_maxHeightCrop: 10,
+		
 		_idGen: 1,
 
 		_repositionAll: function(){
@@ -285,7 +292,8 @@ define([
 			}else{
 				var viewport = Viewport.getEffectiveBox(this.ownerDocument),
 					aroundPos = around ? domGeometry.position(around, false) : {y: args.y - (args.padding||0), h: (args.padding||0) * 2};
-				maxHeight = Math.floor(Math.max(aroundPos.y, viewport.h - (aroundPos.y + aroundPos.h)));
+				maxHeight = Math.floor(Math.max(aroundPos.y, viewport.h - (aroundPos.y + aroundPos.h)))- this._maxHeightCrop;
+				//AR: added substracting of _maxHeightCrop
 			}
 			if(popupSize.h > maxHeight){
 				// Get style of popup's border.  Unfortunately domStyle.get(node, "border") doesn't work on FF or IE,
