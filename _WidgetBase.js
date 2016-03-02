@@ -888,13 +888,15 @@ define([
 			});
 		},
 
+		_isEqualValue: isEqual,
+		
 		_set: function(/*String*/ name, /*anything*/ value){
 			// summary:
 			//		Helper function to set new value for specified property, and call handlers
 			//		registered with watch() if the value has changed.
 			var oldValue = this[name];
 			this[name] = value;
-			if(this._created && !isEqual(oldValue, value)){
+			if(this._created && !this._isEqualValue(oldValue, value)){
 				if(this._watchCallbacks){
 					this._watchCallbacks(name, oldValue, value);
 				}
