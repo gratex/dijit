@@ -1,6 +1,6 @@
 define(["doh/main", "require", "dojo/sniff"], function(doh, require, has){
 
-	var test_robot = !has("ios") && !has("android");
+	var test_robot = has("trident") || has("ff") || has("chrome") < 45;
 
 	doh.register("form.ButtonMixin", require.toUrl("./ButtonMixin.html"), 999999);
 	doh.register("form.Button", require.toUrl("./Button.html"), 999999);
@@ -13,6 +13,7 @@ define(["doh/main", "require", "dojo/sniff"], function(doh, require, has){
 	doh.register("form.CheckBoxMixin", require.toUrl("./CheckBoxMixin.html"), 999999);
 	doh.register("form.CheckBox", require.toUrl("./CheckBox.html"), 999999);
 	doh.register("form.RadioButtonMixin", require.toUrl("./RadioButtonMixin.html"), 999999);
+	doh.register("form.RadioButtonTiming", require.toUrl("./RadioButtonTiming.html?mode=test"), 999999);
 	if(test_robot){
 		doh.register("form.robot.CheckBox_mouse", require.toUrl("./robot/CheckBox_mouse.html"), 999999);
 		doh.register("form.robot.CheckBox_a11y", require.toUrl("./robot/CheckBox_a11y.html"), 999999);
