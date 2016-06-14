@@ -160,6 +160,11 @@ define([
 						// Yes, it's bad to allow script tags in the editor code, but some people
 						// seem to want to do it, so we need to at least return them right.
 						// other plugins/filters can strip them.
+					case 'style':
+						// AR: do the same also for style, because there is different handling of HTML entities
+						// in style tag, entities are not processed, 
+						// e.g. font-family: "Arial" would be transformed to &quot;Arial&quot; (by getChildrenHtmlHelper)
+						// which is not valid
 						output.push('>', node.innerHTML, '</', lName, '>');
 						break;
 					default:
