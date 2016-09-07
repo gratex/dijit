@@ -1,6 +1,7 @@
 define([
 	"require",
 	"dojo/_base/array", // array.forEach
+	"dojo/_base/config", // config
 	"dojo/_base/declare", // declare
 	"dojo/dom", // dom.byId dom.isDescendant
 	"dojo/dom-attr", // domAttr.get domAttr.set domAttr.has domAttr.remove
@@ -15,7 +16,7 @@ define([
 	"./popup",
 	"./DropDownMenu",
 	"dojo/ready"
-], function(require, array, declare, dom, domAttr, domGeometry, domStyle, keys, lang, on, has, win, winUtils, pm, DropDownMenu, ready){
+], function(require, array, config, declare, dom, domAttr, domGeometry, domStyle, keys, lang, on, has, win, winUtils, pm, DropDownMenu, ready){
 
 	// module:
 	//		dijit/Menu
@@ -164,6 +165,9 @@ define([
 					self = this;
 				return [
 					on(cn, delegatedEvent(this.leftClickToOpen ? "click" : "contextmenu"), function(evt){
+						if(config.isDebug && !this.leftClickToOpen && evt.ctrlKey) { //AR allow to prevent showing popup, show native context menu instead 
+							return;
+						}
 						evt.stopPropagation();
 						evt.preventDefault();
 
