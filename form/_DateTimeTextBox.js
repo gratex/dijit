@@ -196,7 +196,8 @@ define([
 			//		Sets the date on this textbox. Note: value can be a JavaScript Date literal or a string to be parsed.
 			if(value !== undefined){
 				if(typeof value == "string"){
-					value = stamp.fromISOString(value);
+					//AR: do not parse empty strings, treat them as empty value
+					value = value && stamp.fromISOString(value) || null;
 				}
 				if(this._isInvalidDate(value)){
 					value = null;
