@@ -345,6 +345,11 @@ define([
 			// Add our new options
 			if(store && store.query){
 				this._loadingStore = true;
+				if(this.onLoadDeferred && !this.onLoadDeferred.isFulfilled()){
+					// if we have non-fulfilled onLoadDeferred, it means there's ongoing async store.query
+					// so cancel it, to prevent duplicate resolving of onLoadDeferred (and useless processing of prev query)
+					this._queryRes.cancel(new Error("New store set"));
+				}
 				this.onLoadDeferred = new Deferred();
 
 				// Run query
