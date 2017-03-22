@@ -677,7 +677,8 @@ define([
 
 		// If a node was focused, and there's a Dialog currently showing, and not in the process of fading out...
 		// Ignore focus events on other document though because it's likely an Editor inside of the Dialog.
-		if(node && topDialog && !topDialog._fadeOutDeferred && node.ownerDocument == topDialog.ownerDocument){
+		// JU: added modeless exception
+		if(node && topDialog && !topDialog._fadeOutDeferred && !topDialog.modeless && node.ownerDocument == topDialog.ownerDocument){
 			// If the node that was focused is inside the dialog or in a popup, even a context menu that isn't
 			// technically a descendant of the the dialog, don't do anything.
 			do{
