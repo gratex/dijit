@@ -414,7 +414,7 @@ define([
 					this.onLoadDeferred.resolve(true);
 					this.onSetStore();
 				}), lang.hitch(this, function(err){
-					console.error('dijit.form.Select: ' + err.toString());
+					console.warn('dijit.form.Select: ' + err.toString());
 					this.onLoadDeferred.reject(err);
 				}));
 			}
