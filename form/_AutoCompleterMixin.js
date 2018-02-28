@@ -175,7 +175,11 @@ define([
 						evt.preventDefault();
 					}else{
 						// Update 'value' (ex: KY) according to currently displayed text
-						this._setBlurValue(); // set value if needed
+						var isNewValSet = this._setBlurValue(); // set value if needed
+						if(isNewValSet){
+							evt.stopPropagation();
+							evt.preventDefault();
+						}
 						this._setCaretPos(this.focusNode, this.focusNode.value.length); // move cursor to end and cancel highlighting
 					}
 				// fall through
@@ -334,6 +338,7 @@ define([
 				// Update 'value' (ex: KY) according to currently displayed text
 				this.item = null;
 				this.set('displayedValue', newvalue);
+				return !!newvalue; // AR: inform caller that new value is beeing set
 			}else{
 				if(this.value != this._lastValueReported){
 					this._handleOnChange(this.value, true);
