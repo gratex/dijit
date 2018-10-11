@@ -4,8 +4,9 @@ define([
 	"dojo/i18n", // i18n.normalizeLocale, i18n.getLocalization
 	"dojo/string", // string.rep
 	"dojo/number", // number._realNumberRegexp number.format number.parse number.regexp
-	"./RangeBoundTextBox"
-], function(declare, lang, i18n, string, number, RangeBoundTextBox){
+	"./RangeBoundTextBox",
+	"./_TextBoxMixin"
+], function(declare, lang, i18n, string, number, RangeBoundTextBox, _TextBoxMixin){
 
 	// module:
 	//		dijit/form/NumberTextBox
@@ -141,7 +142,11 @@ define([
 			if(typeof val == "number" && !isNaN(val)){
 				var formattedValue = this.format(val, this.constraints);
 				if(formattedValue !== undefined){
+					// AR: remeber if text was selected (e.g. standard browser behaviour: select on TAB)
+					var wasSelected = this._isTextSelected();
 					this.textbox.value = formattedValue;
+					// AR: reselect after changing value
+					wasSelected && _TextBoxMixin.selectInputText(this.textbox);
 				}
 			}
 			this.inherited(arguments);
