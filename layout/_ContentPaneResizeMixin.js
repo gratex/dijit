@@ -92,7 +92,7 @@ define([
 				candidateWidgets[0] : null;
 
 			// So we can set overflow: hidden to avoid a safari bug w/scrollbars showing up (#9449)
-			domClass.toggle(this.containerNode, this.baseClass + "SingleChild", !!this._singleChild);
+			domClass.toggle(this.containerNode, this.baseClass.replace(/([\S])\b/g,"$1SingleChild"), !!this._singleChild);
 		},
 
 		resize: function(changeSize, resultSize){
