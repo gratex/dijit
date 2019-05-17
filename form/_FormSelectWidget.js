@@ -675,14 +675,14 @@ define([
 				// and connected appropriately
 				this.store = null;
 				this._deprecatedSetStore(store, this._oValue, {query: this.query, queryOptions: this.queryOptions});
+				this._storeInitialized = true;
 			}
 
-			this._storeInitialized = true;
 		},
 
 		startup: function(){
 			// summary:
-			this._loadChildren();
+			this._storeInitialized || this._loadChildren();
 			this.inherited(arguments);
 		},
 
