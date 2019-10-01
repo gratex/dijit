@@ -40,6 +40,7 @@ define([
 					this.containerNode.stopParser = true;
 				}
 
+				var parseErr;
 				parser.parse(node, {
 					noStart: !this._earlyTemplatedStartup,
 					template: true,
@@ -75,7 +76,13 @@ define([
 					if(this.containerNode && this.containerNode.stopParser){
 						delete this.containerNode.stopParser;
 					}
-				}));
+				}), function(err){
+					parseErr = err;
+				});
+
+				if(parseErr){
+					throw parseErr;
+				}
 
 				if(!this._startupWidgets){
 					throw new Error(this.declaredClass + ": parser returned unfilled promise (probably waiting for module auto-load), " +
