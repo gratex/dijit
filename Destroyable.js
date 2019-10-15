@@ -34,7 +34,8 @@ define([
 			var cleanupMethods = [
 				"destroyRecursive",
 				"destroy",
-				"remove"
+				"remove",
+				"dispose"
 			];
 
 			array.forEach(arguments, function(handle){
