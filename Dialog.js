@@ -219,7 +219,7 @@ define([
 
 				domStyle.set(node, {
 					left: l + "px",
-					top: t + "px"
+					top: Math.max(t, 0) + "px"
 				});
 			}
 		},
