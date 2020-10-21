@@ -122,13 +122,16 @@ define([
 		_setConstraintsAttr: function(/*Object*/ constraints){
 			var places = typeof constraints.places == "number"? constraints.places : 0;
 			if(places){ places++; } // decimal rounding errors take away another digit of precision
-			if(typeof constraints.max != "number"){
+			var origPlaces = this._lastPlaces || 0;
+			if(origPlaces){ origPlaces++; } // decimal rounding errors take away another digit of precision
+			if(typeof constraints.max != "number" || constraints.max == 9 * Math.pow(10, 15-origPlaces)){
 				constraints.max = 9 * Math.pow(10, 15-places);
 			}
-			if(typeof constraints.min != "number"){
+			if(typeof constraints.min != "number" || constraints.min == -9 * Math.pow(10, 15-origPlaces)){
 				constraints.min = -9 * Math.pow(10, 15-places);
 			}
 			this.inherited(arguments, [ constraints ]);
+			this._lastPlaces = typeof this.constraints.places == "number"? this.constraints.places : 0;
 			if(this.focusNode && this.focusNode.value && !isNaN(this.value)){
 				this.set('value', this.value);
 			}
